@@ -2,7 +2,7 @@ from jwt import InvalidTokenError, ExpiredSignatureError
 from starlette.authentication import AuthenticationBackend, AuthCredentials, BaseUser
 from starlette.requests import HTTPConnection
 
-from fastjwt.core import JWTCore
+from .core import JWTCore
 
 
 class FastJWTUser(BaseUser):

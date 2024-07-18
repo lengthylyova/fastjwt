@@ -1,7 +1,7 @@
 from starlette.middleware.authentication import AuthenticationMiddleware
 
-from fastjwt.auth import JWTAuthenticationBackend
-from fastjwt.core import JWTCore
+from .auth import JWTAuthenticationBackend
+from .core import JWTCore
 
 
 class JWTAuthenticationMiddleware(AuthenticationMiddleware):
