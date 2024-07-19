@@ -4,17 +4,12 @@
 pip install fastjwtapi
 ```
 
-## Usage
-
+## Quick Guide
+### JWTCore
+`JWTCore` is the main class of the `fastjwtapi` package which allows
+you to configure your JWT auth process.
 ```python
-from yourapp.database import get_db
-from yourapp.models import User
-from yourapp.schemas import UserLoginSchema
-
 from fastjwtapi.core import JWTCore
-from fastapi import FastAPI
-
-app = FastAPI()
 
 jwt_core = JWTCore(
     user_model_class=User,
@@ -22,9 +17,48 @@ jwt_core = JWTCore(
     token_payload_fields=["id", "username", "is_active"],
     secret_key="your_insane_secret_key",
     get_db_func=get_db
+    # you can also provide `algorithm`, `access_token_lifetime` and `refresh_token_lifetime`
+)
+```
+
+### Router
+Using the `JWTCore` instance you can build `fastapi.APIRouter` with pre-built
+endpoints, such as `/login` and `/refresh`.
+```python
+from fastjwtapi.core import JWTCore
+from fastapi import FastAPI
+
+jwt_core = JWTCore(...)
+
+app = FastAPI()
+app.include_router(jwt_core.build_router("/auth"))
+```
+
+### Middleware
+Using the middleware you can get from the token
+the user fields specified in `JWTCore.token_payload_fields` using `request.user`.
+```python
+from fastapi import FastAPI
+from fastapi.requests import Request
+from fastjwtapi.core import JWTCore
+from fastjwtapi.middlewares import JWTAuthenticationMiddleware
+
+jwt_core = JWTCore(
+    ...
+    token_payload_fields=["id", "username"]
+    ...
 )
 
-app.include_router(jwt_core.build_router())
+app = FastAPI()
+app.add_middleware(JWTAuthenticationMiddleware, jwt_core=jwt_core)
+
+
+@app.get("/")
+def endpoint(request: Request):
+    return {
+        "id": request.user.id,
+        "username": request.user.username,
+    } 
 ```
 
 ## Customization example
@@ -62,6 +96,7 @@ In this case, for the endpoints to work correctly, you need to customize the `JW
 ```python
 import hashlib
 
+from fastapi import FastAPI
 from fastjwtapi.core import JWTCore
 
 
@@ -74,4 +109,9 @@ class CustomJWTCore(JWTCore):
         credentials["hashed_password"] = hash_example(credentials["password"])
         del credentials["password"]
         return super().verify_user_credentials(db, credentials)
+
+jwt_core = CustomJWTCore()
+
+app = FastAPI()
+app.include_router(jwt_core.build_router("/auth"))
 ```
