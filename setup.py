@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 
-with open("app/README.md", "r") as file:
+with open("README.md", "r") as file:
     long_description = file.read()
 
 setup(
     name="fastjwtapi",
-    version="0.0.2",
+    version="0.0.3",
     description="An add-on for the FastAPI framework that makes it easier to work with JWT authorization.",
     package_dir={"": "app"},
     packages=find_packages(where="app"),
