@@ -5,7 +5,7 @@ with open("README.md", "r") as file:
 
 setup(
     name="fastjwtapi",
-    version="0.0.3",
+    version="0.0.4",
     description="An add-on for the FastAPI framework that makes it easier to work with JWT authorization.",
     package_dir={"": "app"},
     packages=find_packages(where="app"),
