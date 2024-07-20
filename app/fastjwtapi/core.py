@@ -2,8 +2,7 @@ import time
 from typing import Any, List, Callable
 
 import jwt
-from fastapi import Depends, HTTPException, APIRouter
-from fastapi import status
+from fastapi import Depends, HTTPException, APIRouter, status
 from fastapi.requests import Request
 from fastapi.responses import Response
 from sqlalchemy.exc import NoResultFound, MultipleResultsFound
@@ -43,33 +42,24 @@ class JWTCore:
         )
         return router
 
+    def _generate_token(self, payload: dict, lifetime: int) -> str:
+        payload["exp"] = time.time() + lifetime
+        return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+
     def generate_access_token(self, payload: dict) -> str:
-        payload["exp"] = time.time() + self.access_token_lifetime
-        return jwt.encode(
-            payload=payload,
-            key=self.secret_key,
-            algorithm=self.algorithm
-        )
+        return self._generate_token(payload, self.access_token_lifetime)
 
-    def generate_refresh_token(self, payload: Any) -> str:
-        payload["exp"] = time.time() + self.refresh_token_lifetime
-        return jwt.encode(
-            payload=payload,
-            key=self.secret_key,
-            algorithm=self.algorithm
-        )
+    def generate_refresh_token(self, payload: dict) -> str:
+        return self._generate_token(payload, self.refresh_token_lifetime)
 
-    def generate_token_pair(self, payload: Any) -> dict:
+    def generate_token_pair(self, payload: dict) -> dict:
         return {
             "access": self.generate_access_token(payload),
             "refresh": self.generate_refresh_token(payload),
         }
 
     def get_user_payload(self, user: Any) -> dict:
-        payload = {}
-        for field in self.token_payload_fields:
-            payload[field] = getattr(user, field, None)
-        return payload
+        return {field: getattr(user, field, None) for field in self.token_payload_fields}
 
     def verify_user_credentials(self, db: Session, credentials: dict):
         """Returns user obj if verified. Else raises Exception"""
@@ -82,12 +72,7 @@ class JWTCore:
 
     def verify_token(self, token: str) -> dict:
         """Returns token payload if verified. Else raises an Exception"""
-        return jwt.decode(
-            jwt=token,
-            key=self.secret_key,
-            algorithms=[self.algorithm],
-            verify=True,
-        )
+        return jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
 
     def _create_login_endpoint(self):
         auth_schema = self.auth_schema
@@ -96,18 +81,18 @@ class JWTCore:
             try:
                 user = self.verify_user_credentials(db, credentials.model_dump())
             except (NoResultFound, MultipleResultsFound) as e:
-                return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.__repr__())
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
             user_payload = self.get_user_payload(user)
             response.set_cookie(
                 key="X-Access-Token",
                 value=self.generate_access_token(user_payload),
-                expires=self.access_token_lifetime,
+                max_age=self.access_token_lifetime,
             )
             response.set_cookie(
                 key="X-Refresh-Token",
                 value=self.generate_refresh_token(user_payload),
-                expires=self.refresh_token_lifetime,
+                max_age=self.refresh_token_lifetime,
             )
             return {"detail": "success"}
 
@@ -115,10 +100,9 @@ class JWTCore:
 
     def _create_refresh_endpoint(self):
         def refresh(request: Request, response: Response):
-            token = request.cookies.get("X-Refresh-Token", None)
-            if token is None:
-                response.status_code = status.HTTP_400_BAD_REQUEST
-                return HTTPException(
+            token = request.cookies.get("X-Refresh-Token")
+            if not token:
+                raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="X-Refresh-Token cookie not set"
                 )
@@ -126,13 +110,16 @@ class JWTCore:
             try:
                 payload = self.verify_token(token)
             except jwt.DecodeError as e:
-                response.status_code = status.HTTP_400_BAD_REQUEST
-                return HTTPException(
+                raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Invalid X-Refresh-Token cookie. {e.__repr__()}"
                 )
 
-            response.set_cookie(key="X-Access-Token", value=self.generate_access_token(payload))
+            response.set_cookie(
+                key="X-Access-Token",
+                value=self.generate_access_token(payload),
+                max_age=self.access_token_lifetime,
+            )
             return {"detail": "success"}
 
         return refresh
