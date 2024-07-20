@@ -1,4 +1,10 @@
 # FastJWTapi
+
+![PyPI - Version](https://img.shields.io/pypi/v/fastjwtapi)
+![PyPI - License](https://img.shields.io/pypi/l/fastjwtapi)
+![GitHub Repo stars](https://img.shields.io/github/stars/lengthylyova/fastjwtapi)
+
+
 ## Installation
 ```commandline
 pip install fastjwtapi
