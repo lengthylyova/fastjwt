@@ -42,7 +42,7 @@ app.include_router(jwt_core.build_router("/auth"))
 
 ### Middleware
 Using the middleware you can get from the token
-the user fields specified in `JWTCore.token_payload_fields` using `request.user`.
+the user fields ***(specified in `token_payload_fields` parameter of `fastjwtapi.JWTCore` instance)*** using `request.user`.
 ```python
 from fastapi import FastAPI
 from fastapi.requests import Request
@@ -59,12 +59,31 @@ app = FastAPI()
 app.add_middleware(JWTAuthenticationMiddleware, jwt_core=jwt_core)
 
 
-@app.get("/")
-def endpoint(request: Request):
+@app.get("/test")
+def test(request: Request):
     return {
         "id": request.user.id,
         "username": request.user.username,
     } 
+```
+
+## Dependency
+You can apply dependencies using the instance of `fastjwtapi.dependency.JWTDependency` class. Here is the example:
+
+```python
+from fastapi import FastAPI
+from fastjwtapi.core import JWTCore
+from fastjwtapi.dependency import JWTDependency
+
+app = FastAPI()
+jwt_core = JWTCore(...)
+
+dep = JWTDependency(jwt_core)
+
+
+@app.get("/test", dependencies=[dep.x_access_token_cookie()])
+def test_point():
+    return {"result": "success"}
 ```
 
 ## Customization example
@@ -116,7 +135,8 @@ class CustomJWTCore(JWTCore):
         del credentials["password"]
         return super().verify_user_credentials(db, credentials)
 
-jwt_core = CustomJWTCore()
+
+jwt_core = CustomJWTCore(...)
 
 app = FastAPI()
 app.include_router(jwt_core.build_router("/auth"))
