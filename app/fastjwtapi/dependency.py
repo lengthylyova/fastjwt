@@ -27,3 +27,21 @@ class JWTDependency:
                 )
 
         return Depends(inner_logic)
+
+    def x_refresh_token_cookie(self):
+        def inner_logic(request: Request):
+            token = request.cookies.get("X-Refresh-Token", None)
+            if token is None:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="X-Refresh-Token not provided"
+                )
+            try:
+                self.core.verify_token(token)
+            except (ExpiredSignatureError, InvalidTokenError) as e:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail=f"Invalid X-Refresh-Token cookie: {e.__repr__()}"
+                )
+
+        return Depends(inner_logic)
