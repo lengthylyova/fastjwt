@@ -15,7 +15,7 @@ pip install fastjwtapi
 `JWTCore` is the main class of the `fastjwtapi` package which allows
 you to configure your JWT auth process.
 ```python
-from fastjwtapi.core import JWTCore
+from fastjwtapi import JWTCore
 
 jwt_core = JWTCore(
     user_model_class=User,
@@ -31,7 +31,7 @@ jwt_core = JWTCore(
 Using the `JWTCore` instance you can build `fastapi.APIRouter` with pre-built
 endpoints, such as `/login` and `/refresh`.
 ```python
-from fastjwtapi.core import JWTCore
+from fastjwtapi import JWTCore
 from fastapi import FastAPI
 
 jwt_core = JWTCore(...)
@@ -46,8 +46,7 @@ the user fields ***(specified in `token_payload_fields` parameter of `fastjwtapi
 ```python
 from fastapi import FastAPI
 from fastapi.requests import Request
-from fastjwtapi.core import JWTCore
-from fastjwtapi.middlewares import JWTAuthenticationMiddleware
+from fastjwtapi import JWTCore, JWTAuthenticationMiddleware
 
 jwt_core = JWTCore(
     ...
@@ -72,8 +71,7 @@ You can apply dependencies using the instance of `fastjwtapi.dependency.JWTDepen
 
 ```python
 from fastapi import FastAPI
-from fastjwtapi.core import JWTCore
-from fastjwtapi.dependency import JWTDependency
+from fastjwtapi import JWTCore, JWTDependency
 
 app = FastAPI()
 jwt_core = JWTCore(...)
@@ -122,7 +120,7 @@ In this case, for the endpoints to work correctly, you need to customize the `JW
 import hashlib
 
 from fastapi import FastAPI
-from fastjwtapi.core import JWTCore
+from fastjwtapi import JWTCore
 
 
 def hash_example(password: str) -> str:
