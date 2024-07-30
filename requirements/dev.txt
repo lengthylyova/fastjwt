@@ -1,0 +1,4 @@
+-r base.txt
+
+flake8==7.1.0
+twine==5.1.1
