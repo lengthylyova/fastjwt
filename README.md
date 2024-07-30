@@ -4,6 +4,8 @@
 ![PyPI - License](https://img.shields.io/pypi/l/fastjwtapi)
 ![GitHub Repo stars](https://img.shields.io/github/stars/lengthylyova/fastjwtapi)
 
+[![Flake8 Lint](https://github.com/lengthylyova/fastjwtapi/actions/workflows/flake8_lint.yml/badge.svg)](https://github.com/lengthylyova/fastjwtapi/actions/workflows/flake8_lint.yml)
+
 
 ## Installation
 ```commandline
