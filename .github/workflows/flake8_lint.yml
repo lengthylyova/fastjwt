@@ -1,0 +1,27 @@
+name: Flake8 Lint
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  flake8-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Flake8 Lint
+        run: |
+          pip install -r requirements/dev.txt
+          python -m flake8 ./app --format=default --count
