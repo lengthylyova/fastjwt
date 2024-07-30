@@ -1,5 +1,7 @@
 from jwt import InvalidTokenError, ExpiredSignatureError
-from starlette.authentication import AuthenticationBackend, AuthCredentials, BaseUser
+from starlette.authentication import (
+    AuthenticationBackend, AuthCredentials, BaseUser
+)
 from starlette.requests import HTTPConnection
 
 from .core import JWTCore
@@ -19,7 +21,9 @@ class JWTAuthenticationBackend(AuthenticationBackend):
     def __init__(self, jwt_core: JWTCore):
         self.core = jwt_core
 
-    async def authenticate(self, conn: HTTPConnection) -> tuple[AuthCredentials, BaseUser] | None:
+    async def authenticate(
+            self, conn: HTTPConnection) \
+            -> tuple[AuthCredentials, BaseUser] | None:
         access_token = conn.cookies.get("X-Access-Token", None)
         if access_token is None:
             return

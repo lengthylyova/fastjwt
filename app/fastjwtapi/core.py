@@ -59,7 +59,11 @@ class JWTCore:
         }
 
     def get_user_payload(self, user: Any) -> dict:
-        return {field: getattr(user, field, None) for field in self.token_payload_fields}
+        return {
+            field: getattr(
+                user, field, None
+            ) for field in self.token_payload_fields
+        }
 
     def verify_user_credentials(self, db: Session, credentials: dict):
         """Returns user obj if verified. Else raises Exception"""
@@ -77,11 +81,18 @@ class JWTCore:
     def _create_login_endpoint(self):
         auth_schema = self.auth_schema
 
-        def login(credentials: auth_schema, response: Response, db: Session = Depends(self.get_db)):
+        def login(credentials: auth_schema,
+                  response: Response,
+                  db: Session = Depends(self.get_db)):
             try:
-                user = self.verify_user_credentials(db, credentials.model_dump())
+                user = self.verify_user_credentials(
+                    db, credentials.model_dump()
+                )
             except (NoResultFound, MultipleResultsFound) as e:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=str(e)
+                )
 
             user_payload = self.get_user_payload(user)
             response.set_cookie(
